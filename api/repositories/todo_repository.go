@@ -117,3 +117,29 @@ func (repo *TodoRepository) DeleteTodoByID(todoID string) error {
 
 	return nil
 }
+
+func (repo *TodoRepository) UpdateTodoByID(todoID string, data map[string]interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	idPrimitive, err := primitive.ObjectIDFromHex(todoID)
+	if err != nil {
+		return err
+	}
+
+	res, err := repo.todoCollection.UpdateOne(
+		ctx, bson.M{"_id": idPrimitive},
+		bson.D{
+			{Key: "$set", Value: data},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return apierrors.NO_ENTITY_UPDATED_ERROR
+	}
+
+	return nil
+}

@@ -116,3 +116,42 @@ func (ctrl *TodoController) DeleteTodoByID() gin.HandlerFunc {
 		})
 	}
 }
+
+func (ctrl *TodoController) UpdateTodoByID() gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		var todo dto.UpdateTodoDTO
+
+		if err := c.ShouldBind(&todo); err != nil {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(
+				http.StatusInternalServerError,
+				map[string]interface{}{"error": "error in data input"},
+			)
+			return
+		}
+
+		results, err := ctrl.todoSrv.UpdateTodoByID(id, todo)
+		if err != nil {
+			if errors.Is(err, apierrors.NO_ENTITY_UPDATED_ERROR) {
+				c.AbortWithStatusJSON(
+					http.StatusBadRequest,
+					map[string]interface{}{"error": fmt.Sprintf("todo with ID %s does not exists", id)},
+				)
+				return
+			}
+
+			c.AbortWithStatusJSON(
+				http.StatusInternalServerError,
+				map[string]interface{}{"error": err.Error()},
+			)
+			return
+		}
+
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"data": results,
+		})
+	}
+}

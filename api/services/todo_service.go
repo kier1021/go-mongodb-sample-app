@@ -1,6 +1,8 @@
 package services
 
 import (
+	"strings"
+
 	"github.com/kier1021/go-mongodb-sample-app/api/dto"
 	"github.com/kier1021/go-mongodb-sample-app/api/models"
 	"github.com/kier1021/go-mongodb-sample-app/api/repositories"
@@ -73,6 +75,30 @@ func (srv *TodoService) DeleteTodoByID(id string) (map[string]interface{}, error
 
 	return map[string]interface{}{
 		"message": "Todo successfully deleted",
+		"_id":     id,
+	}, nil
+}
+
+func (srv *TodoService) UpdateTodoByID(id string, updateTodo dto.UpdateTodoDTO) (map[string]interface{}, error) {
+
+	data := make(map[string]interface{})
+
+	if strings.TrimSpace(updateTodo.Title) != "" {
+		data["title"] = updateTodo.Title
+	}
+
+	if strings.TrimSpace(updateTodo.Description) != "" {
+		data["description"] = updateTodo.Description
+	}
+
+	err := srv.todoRepository.UpdateTodoByID(id, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"message": "Todo successfully updated",
+		"info":    data,
 		"_id":     id,
 	}, nil
 }

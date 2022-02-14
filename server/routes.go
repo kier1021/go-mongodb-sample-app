@@ -58,4 +58,9 @@ func (routes *Routes) SetRoutes() {
 		"/todo/:id",
 		todoCtrl.DeleteTodoByID(),
 	)
+
+	routes.Engine.PUT(
+		"/todo/:id",
+		todoCtrl.UpdateTodoByID(),
+	)
 }
