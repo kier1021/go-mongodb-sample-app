@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"time"
@@ -83,18 +84,22 @@ func (repo *TodoRepository) GetTodoByID(todoID string) (*models.Todo, error) {
 	return &todo, nil
 }
 
-func (repo *TodoRepository) AddTodo(todo models.Todo) (interface{}, error) {
+func (repo *TodoRepository) AddTodo(todo models.Todo) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	todo.ID = primitive.NewObjectID()
+	var data map[string]interface{}
+	b, _ := json.Marshal(todo)
+	json.Unmarshal(b, &data)
 
-	res, err := repo.todoCollection.InsertOne(ctx, todo)
+	data["_id"] = primitive.NewObjectID()
+
+	res, err := repo.todoCollection.InsertOne(ctx, data)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return res.InsertedID, nil
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func (repo *TodoRepository) DeleteTodoByID(todoID string) error {
